@@ -43,18 +43,23 @@ class MazeView2D(tk.Canvas):
     player_angle = 0
     player_x = 15
     player_y = 15
+    dot_x = 15
+    dot_y = 15
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
         self.bind("<j>", lambda event: self.rotate_player(-90))
         self.bind("<l>", lambda event: self.rotate_player(+90))
         self.bind("<k>", lambda event: self.advance_player(10))
         self.bind("<i>", lambda event: self.advance_player(10))
-        self.bind("<Up>", lambda event: self.move_player(0, -10))
-        self.bind("<Down>", lambda event: self.move_player(0, +10))
-        self.bind("<Left>", lambda event: self.move_player(-10, 0))
-        self.bind("<Right>", lambda event: self.move_player(+10, 0))
+        self.bind("<Up>", lambda event: self.move_dot(0, -10))
+        self.bind("<Down>", lambda event: self.move_dot(0, +10))
+        self.bind("<Left>", lambda event: self.move_dot(-10, 0))
+        self.bind("<Right>", lambda event: self.move_dot(+10, 0))
+        self.bind("<q>", lambda event: root.quit)
+        self.bind("<X>", lambda event: root.destroy)
         
         self.player_shape = self.create_polygon(1, 1, fill='gray', outline='blue')
+        self.dot_shape = self.create_oval(1, 1, 2, 2, fill='gray', outline='red')
         self.change_player_coords()
 
     def change_player_coords(self):
@@ -65,6 +70,12 @@ class MazeView2D(tk.Canvas):
                     for (x, y) in player_pts)
         self.coords(self.player_shape, *flatten_list(grid_pts))
 
+    def change_dot_coords(self):
+        dot_pts = ((-2., -2.), (+2., +2.))
+        dx, dy = self.dot_x, self.dot_y
+        grid_pts = ((dx, dy) for (x, y) in dot_pts)
+        self.coords(self.dot_shape, *flatten_list(grid_pts))
+        
     def rotate_player(self, angle):
         "Rotates player by angle (specified by degrees)."
         self.player_angle = (self.player_angle + angle * math.pi / 180) % (2 * math.pi)        
@@ -76,6 +87,12 @@ class MazeView2D(tk.Canvas):
         self.player_y += y
         self.change_player_coords()
 
+    def move_dot(self, x, y):
+        "Moves dot coordinates by an amount (x, y)."
+        self.dot_x += x
+        self.dot_y += y
+        self.change_dot_coords()
+        
     def advance_player(self, amt):
         "Advances the player in its current direction by amt."
         self.move_player(amt * math.cos(self.player_angle),
