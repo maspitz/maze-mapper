@@ -13,7 +13,7 @@ class Cell:
     """Cell is one square unit in the maze grid."""
     def __init__(self):
         # walls[0,1,2,3] are N, E, S, W walls respectively.
-        self.borders = [Boundary.EMPTY for _ in range(4)]
+        self.borders = [Boundary.BLANK for _ in range(4)]
         pass
     def __repr__(self):
         return "Cell()"
@@ -40,30 +40,34 @@ def flatten_list(lst):
     return [elt for sublst in lst for elt in sublst]
 
 class MazeView2D(tk.Canvas):
-    player_angle = 0
-    player_x = 15
-    player_y = 15
-    dot_x = 15
-    dot_y = 15
     def __init__(self, parent, **kwargs):
+        self.player_angle = 0
+        self.player_x = 10
+        self.player_y = 10
+        self.dot_x = 10
+        self.dot_y = 10
+        self.maze = Maze(10,10)
         super().__init__(parent, **kwargs)
         self.bind("<j>", lambda event: self.rotate_player(-90))
         self.bind("<l>", lambda event: self.rotate_player(+90))
-        self.bind("<k>", lambda event: self.advance_player(10))
-        self.bind("<i>", lambda event: self.advance_player(10))
-        self.bind("<Up>", lambda event: self.move_dot(0, -10))
-        self.bind("<Down>", lambda event: self.move_dot(0, +10))
-        self.bind("<Left>", lambda event: self.move_dot(-10, 0))
-        self.bind("<Right>", lambda event: self.move_dot(+10, 0))
+        self.bind("<k>", lambda event: self.advance_player(20))
+        self.bind("<i>", lambda event: self.advance_player(20))
+        self.bind("<Up>", lambda event: self.move_dot(0, -20))
+        self.bind("<Down>", lambda event: self.move_dot(0, +20))
+        self.bind("<Left>", lambda event: self.move_dot(-20, 0))
+        self.bind("<Right>", lambda event: self.move_dot(+20, 0))
         self.bind("<q>", lambda event: root.quit)
         self.bind("<X>", lambda event: root.destroy)
         
+        self.maze_squares = [self.create_rectangle(x*20, y*20, (x+1)*20, (y+1)*20, fill='white', outline='gray')
+                             for x in range(self.maze.xdim) for y in range(self.maze.ydim)]
         self.player_shape = self.create_polygon(1, 1, fill='gray', outline='blue')
-        self.dot_shape = self.create_oval(1, 1, 2, 2, fill='gray', outline='red')
         self.change_player_coords()
-
+        self.dot_shape = self.create_oval(1, 1, 2, 2, fill='gray', outline='red')
+        self.change_dot_coords()
+    
     def change_player_coords(self):
-        player_pts = ((7., 0.), (-7., 4.), (-7., -4.))
+        player_pts = ((9., 0.), (-9., 5.), (-9., -5.))
         px, py, pa = self.player_x, self.player_y, self.player_angle
         grid_pts = ((px + (x * math.cos(pa) - y * math.sin(pa)),
                      py + (x * math.sin(pa) + y * math.cos(pa)))
@@ -71,7 +75,7 @@ class MazeView2D(tk.Canvas):
         self.coords(self.player_shape, *flatten_list(grid_pts))
 
     def change_dot_coords(self):
-        dot_pts = ((-2., -2.), (+2., +2.))
+        dot_pts = ((-4., -4.), (+4., +4.))
         dx, dy = self.dot_x, self.dot_y
         grid_pts = ((dx, dy) for (x, y) in dot_pts)
         self.coords(self.dot_shape, *flatten_list(grid_pts))
