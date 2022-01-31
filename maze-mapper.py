@@ -52,22 +52,36 @@ class MazeView2D(tk.Canvas):
         self.bind("<l>", lambda event: self.rotate_player(+90))
         self.bind("<k>", lambda event: self.advance_player(20))
         self.bind("<i>", lambda event: self.advance_player(20))
+        self.bind("<m>", lambda event: self.advance_player(-20))
         self.bind("<Up>", lambda event: self.move_dot(0, -20))
         self.bind("<Down>", lambda event: self.move_dot(0, +20))
         self.bind("<Left>", lambda event: self.move_dot(-20, 0))
         self.bind("<Right>", lambda event: self.move_dot(+20, 0))
+        self.bind("<Shift-Up>", lambda event: self.change_wall(tk.N))
+        self.bind("<Shift-Down>", lambda event: self.change_wall(tk.S))
+        self.bind("<Shift-Left>", lambda event: self.change_wall(tk.W))
+        self.bind("<Shift-Right>", lambda event: self.change_wall(tk.E))
         self.bind("<q>", lambda event: root.quit)
         self.bind("<X>", lambda event: root.destroy)
         
-        self.maze_squares = [self.create_rectangle(x*20, y*20, (x+1)*20, (y+1)*20, fill='white', outline='gray')
+        self.maze_squares = [self.create_rectangle(x*20, y*20, (x+1)*20, (y+1)*20, fill='gray95')
                              for x in range(self.maze.xdim) for y in range(self.maze.ydim)]
+        self.maze_walls = [[self.create_rectangle(x*20, y*20, (x+1)*20, y*20+2, fill='gray90', outline='gray90'),
+                            self.create_rectangle(x*20, (y+1)*20-2, (x+1)*20, (y+1)*20, fill='gray90', outline='gray90'),
+                            self.create_rectangle(x*20, y*20, x*20+2, (y+1)*20, fill='gray90', outline='gray90'),
+                            self.create_rectangle((x+1)*20-2, y*20, (x+1)*20, (y+1)*20, fill='gray90', outline='gray90')]
+                           for x in range(self.maze.xdim) for y in range(self.maze.ydim)]
+                            
+                                                  
+        
         self.player_shape = self.create_polygon(1, 1, fill='gray', outline='blue')
         self.change_player_coords()
         self.dot_shape = self.create_oval(1, 1, 2, 2, fill='gray', outline='red')
         self.change_dot_coords()
+        self.itemconfigure(self.maze_squares[1*self.maze.xdim + 3], fill='yellow')
     
     def change_player_coords(self):
-        player_pts = ((9., 0.), (-9., 5.), (-9., -5.))
+        player_pts = ((8., 0.), (-8., 5.), (-8., -5.))
         px, py, pa = self.player_x, self.player_y, self.player_angle
         grid_pts = ((px + (x * math.cos(pa) - y * math.sin(pa)),
                      py + (x * math.sin(pa) + y * math.cos(pa)))
@@ -79,6 +93,14 @@ class MazeView2D(tk.Canvas):
         dx, dy = self.dot_x, self.dot_y
         grid_pts = ((dx, dy) for (x, y) in dot_pts)
         self.coords(self.dot_shape, *flatten_list(grid_pts))
+
+    def change_wall(self, heading):
+        i = (self.dot_x - 10) // 20
+        j = (self.dot_y - 10) // 20
+        wall_dir_idx = {tk.N: 0, tk.S: 1, tk.W: 2, tk.E: 3}
+        wall_id = self.maze_walls[i*self.maze.xdim + j][wall_dir_idx[heading]]
+        self.itemconfigure(wall_id, fill='black')
+
         
     def rotate_player(self, angle):
         "Rotates player by angle (specified by degrees)."
